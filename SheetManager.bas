@@ -56,6 +56,14 @@ Cleanup:
     End If
 End Sub
 
+' 全マクロを一括実行する
+' 1. 全シートの先頭に空行を追加
+' 2. シート一覧を生成・更新
+Public Sub RunAll()
+    AddRowsAndGoHome
+    UpdateSheetList
+End Sub
+
 ' 全シートの先頭に2行追加し、一番左のシートへ移動する
 ' シート一覧・保護シートは処理対象から除外する
 Public Sub AddRowsAndGoHome()
