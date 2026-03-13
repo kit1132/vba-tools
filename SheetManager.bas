@@ -2,6 +2,20 @@ Option Explicit
 
 Private Const LIST_SHEET_NAME As String = "シート一覧"
 
+' 全マクロを一括実行する
+' 1. 全シートの先頭に空行を追加
+' 2. シート一覧を生成・更新
+Public Sub RunAll()
+    Dim skipped As String
+    skipped = AddRowsAndGoHome_Internal()
+    UpdateSheetList
+
+    If Len(skipped) > 0 Then
+        MsgBox "以下のシートは保護されているためスキップしました:" _
+            & skipped, vbInformation
+    End If
+End Sub
+
 ' シート一覧を再生成する
 ' 全シート名をハイパーリンク付きで一覧表示し、ブックの先頭に配置する
 Public Sub UpdateSheetList()
@@ -51,24 +65,31 @@ Cleanup:
     Application.ScreenUpdating = True
 
     If Err.Number <> 0 Then
-        MsgBox "シート一覧の更新中にエラーが発生しました: " & Err.Description, vbExclamation
+        MsgBox "シート一覧の更新中にエラーが発生しました: " _
+            & Err.Description, vbExclamation
         Err.Clear
     End If
-End Sub
-
-' 全マクロを一括実行する
-' 1. 全シートの先頭に空行を追加
-' 2. シート一覧を生成・更新
-Public Sub RunAll()
-    AddRowsAndGoHome
-    UpdateSheetList
 End Sub
 
 ' 全シートの先頭に2行追加し、一番左のシートへ移動する
 ' シート一覧・保護シートは処理対象から除外する
 Public Sub AddRowsAndGoHome()
+    Dim skipped As String
+    skipped = AddRowsAndGoHome_Internal()
+    ThisWorkbook.Worksheets(1).Activate
+
+    If Len(skipped) > 0 Then
+        MsgBox "以下のシートは保護されているためスキップしました:" _
+            & skipped, vbInformation
+    End If
+End Sub
+
+' 空行追加の実処理（MsgBoxを出さずにスキップ情報を返す）
+Private Function AddRowsAndGoHome_Internal() As String
     Dim ws As Worksheet
     Dim skipped As String
+
+    On Error GoTo ErrHandler
 
     For Each ws In ThisWorkbook.Worksheets
         If ws.Name <> LIST_SHEET_NAME Then
@@ -81,8 +102,12 @@ Public Sub AddRowsAndGoHome()
     Next ws
 
     ThisWorkbook.Worksheets(1).Activate
+    AddRowsAndGoHome_Internal = skipped
+    Exit Function
 
-    If Len(skipped) > 0 Then
-        MsgBox "以下のシートは保護されているためスキップしました:" & skipped, vbInformation
-    End If
-End Sub
+ErrHandler:
+    MsgBox "空行追加中にエラーが発生しました: " _
+        & Err.Description, vbExclamation
+    Err.Clear
+    AddRowsAndGoHome_Internal = skipped
+End Function
