@@ -85,11 +85,7 @@ Sub FormatWorkbook()
             If .Shapes.Count > 0 Then
                 For Each shp In .Shapes
                     On Error Resume Next
-                    If shp.HasTextFrame Then
-                        If shp.TextFrame2.HasText Then
-                            shp.TextFrame2.TextRange.Font.Name = targetFont
-                        End If
-                    End If
+                    shp.TextFrame.Characters.Font.Name = targetFont
                     On Error GoTo ErrHandler
                 Next shp
             End If
